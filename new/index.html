@@ -1097,6 +1097,9 @@
     function calculateAll() {
         if(globalState.mode === 'manual') {
             manualUpdate();
+        } else {
+            // 在最优计算模式下，数据变动时也需要重新运行模拟
+            runOptimization();
         }
     }
 
