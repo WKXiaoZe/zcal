@@ -792,6 +792,57 @@
         document.getElementById('welcome-modal').classList.remove('show');
     }
 
+    function setRes(val, btn) {
+        // 如果处于弱点状态，抗性被锁定为0，不可手动切换
+        if(globalState.bossWeak) return;
+        
+        globalState.bossRes = val;
+        
+        // UI更新：移除同组按钮激活状态，激活当前按钮
+        const siblings = btn.parentElement.querySelectorAll('.zzz-btn');
+        siblings.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        calculateAll();
+    }
+
+    function setWeakness(isWeak, btn) {
+        globalState.bossWeak = isWeak;
+        
+        // UI更新：弱点按钮组
+        const siblings = btn.parentElement.querySelectorAll('.zzz-btn');
+        siblings.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // 逻辑：如果弱点为“是”，强制锁定抗性为0%
+        // 获取抗性按钮组（在 mod-boss 下的第一个 switch-container）
+        const resContainer = document.querySelectorAll('#mod-boss .switch-container')[0];
+        const resBtns = resContainer.querySelectorAll('.zzz-btn');
+        
+        if(isWeak) {
+            // 锁定状态
+            resBtns.forEach(b => {
+                b.classList.remove('active');
+                b.disabled = true;
+                b.style.opacity = 0.5;
+            });
+            // 视觉上选中 0%
+            resBtns[0].classList.add('active');
+        } else {
+            // 解锁状态
+            resBtns.forEach(b => {
+                b.disabled = false;
+                b.style.opacity = 1;
+                b.classList.remove('active');
+            });
+            // 恢复之前的抗性选择
+            if(globalState.bossRes === 0) resBtns[0].classList.add('active');
+            else if(globalState.bossRes === 0.2) resBtns[1].classList.add('active');
+            else if(globalState.bossRes === 0.4) resBtns[2].classList.add('active');
+        }
+        
+        calculateAll();
+    }
     // --- Logic: Cinema & Star Handling ---
 
     function toggleCinema(prefix, rank) {
