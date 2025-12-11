@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZZZ神秘小算盘</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @font-face {
+            font-family: 'HanYiQiHei105';
+            src: url('HanYiQiHei105.woff2') format('woff2');
+        }
+
+        :root {
+            --zzz-neon: #dfff00;
+            --zzz-black: #0a0a0a;
+            --zzz-panel: rgba(20, 20, 20, 0.9);
+            --zzz-border: #444;
+            --zzz-text-main: #ffffff;
+            --zzz-text-dim: #888;
+            --zzz-alert: #ff003c;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: #000;
+            color: var(--zzz-text-main);
+            font-family: 'HYQiHei-105', 'Industry', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(223, 255, 0, 0.05) 0%, transparent 60%),
+                linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.9) 100%),
+                repeating-linear-gradient(45deg, #111 0px, #111 1px, transparent 1px, transparent 10px);
+            min-height: 100vh;
+        }
+
+        /* 移除扫描线特效 */
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--zzz-border);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            color: var(--zzz-neon);
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(223, 255, 0, 0.5);
+            font-style: italic;
+        }
+
+        .credits {
+            font-family: monospace;
+            color: var(--zzz-text-dim);
+            margin-top: 5px;
+        }
+
+        .version {
+            display: inline-block;
+            background: var(--zzz-neon);
+            color: #000;
+            font-weight: 900;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            transform: skew(-15deg);
+            margin-top: 10px;
+        }
+
+        /* Module Layout */
+        .module {
+            background: var(--zzz-panel);
+            border: 1px solid var(--zzz-border);
+            margin-bottom: 30px;
+            padding: 25px;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border-radius: 4px;
+        }
+
+        .module::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; right: -5px;
+            width: 20px; height: 20px;
+            border-bottom: 3px solid var(--zzz-neon);
+            border-right: 3px solid var(--zzz-neon);
+        }
+
+        .module-title {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--zzz-neon);
+            color: #000;
+            padding: 5px 20px;
+            font-weight: 900;
+            font-size: 1.2rem;
+            transform: skew(-15deg);
+            box-shadow: 5px 5px 0 rgba(0,0,0,0.5);
+        }
+
+        .module-title span { display: block; transform: skew(15deg); }
+
+        /* Grid Systems */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .grid-2-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2-split { grid-template-columns: 1fr; }
+        }
+
+        /* Sub-Modules */
+        .sub-module {
+            border-left: 2px solid var(--zzz-border);
+            padding: 15px;
+            background: rgba(255,255,255,0.02);
+            transition: border-color 0.3s;
+        }
+        .sub-module:hover { border-left-color: var(--zzz-neon); }
+
+        .sub-module h3 {
+            color: var(--zzz-neon);
+            margin: 0 0 15px 0;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Inputs */
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        label { color: var(--zzz-text-dim); }
+
+        input[type="number"], input[type="text"], select {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #444;
+            color: var(--zzz-neon);
+            padding: 6px 10px;
+            width: 100px;
+            font-family: monospace;
+            text-align: right;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        select {
+            width: auto;
+            min-width: 120px;
+            max-width: 180px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--zzz-neon);
+            box-shadow: 0 0 10px rgba(223, 255, 0, 0.2);
+        }
+
+        /* Buttons & Switches */
+        .zzz-btn {
+            background: transparent;
+            border: 1px solid var(--zzz-text-dim);
+            color: var(--zzz-text-dim);
+            padding: 5px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .zzz-btn.active {
+            background: var(--zzz-neon);
+            color: #000;
+            border-color: var(--zzz-neon);
+            box-shadow: 0 0 15px rgba(223, 255, 0, 0.4);
+        }
+
+        .zzz-btn:hover:not(.active) {
+            border-color: var(--zzz-neon);
+            color: var(--zzz-neon);
+        }
+
+        .switch-container { display: flex; gap: 5px; }
+
+        /* Cinema & Star Buttons */
+        .rank-selector {
+            display: flex;
+            gap: 4px;
+            margin-left: 10px;
+        }
+        .rank-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #444;
+            background: #111;
+            color: #666;
+            font-size: 0.7rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .rank-btn.active {
+            background: var(--zzz-neon);
+            color: #000;
+            border-color: var(--zzz-neon);
+            box-shadow: 0 0 5px var(--zzz-neon);
+        }
+
+        /* Calculation Log */
+        .calc-log {
+            background: #000;
+            border: 1px solid var(--zzz-neon);
+            padding: 20px;
+            font-family: 'Consolas', monospace;
+            color: #fff;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        .in-combat-highlight { color: var(--zzz-neon); font-weight: bold; }
+        .alert-text { color: var(--zzz-alert); font-weight: bold; }
+
+        /* Chart & Opt */
+        .opt-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(223, 255, 0, 0.05);
+            border: 1px solid var(--zzz-border);
+            align-items: center;
+        }
+
+        /* Enlarged Buttons */
+        .btn-large {
+            padding: 10px 25px;
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .chart-wrapper {
+            height: 450px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--zzz-border);
+            padding: 10px;
+        }
+
+        .panel-data {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+        .panel-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #222;
+            padding: 5px 0;
+        }
+        .panel-row span:last-child { color: var(--zzz-neon); font-family: monospace; font-size: 1.1rem; }
+
+        .opt-config-box {
+            background: rgba(223, 255, 0, 0.1);
+            border: 1px solid var(--zzz-neon);
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .opt-config-title { font-size: 0.8rem; color: #888; text-transform: uppercase; }
+        .opt-config-val { font-size: 1.2rem; font-weight: bold; color: var(--zzz-neon); }
+        .opt-sub-stats { font-size: 0.9rem; color: #fff; margin-top: 5px; }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in;
+        }
+        .modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: #111;
+            border: 2px solid var(--zzz-neon);
+            padding: 40px;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(223, 255, 0, 0.2);
+            transform: skew(-5deg);
+        }
+        .modal h2 { color: var(--zzz-neon); margin-top: 0; }
+        .modal p { color: #ccc; line-height: 1.6; margin-bottom: 30px; }
+
+    </style>
+</head>
+<body>
+
+<!-- Startup Modal -->
+<div id="welcome-modal" class="modal">
+    <div class="modal-content">
+        <h2>使用须知</h2>
+        <p>
+            欢迎使用 ZZZ神秘小算盘 Ver1210。<br>
+            本工具仅供数据模拟与配装参考。<br>
+            <br>
+            使用方法
+            1. 选取主C代理人和辅助代理人，以及他们的影画。<br>
+            2. 选取代理人的音擎，以及武器的精炼等级。<br>
+            3. 手动调整敌人数据和场地BUFF（场地buff固定100%覆盖，所以用作伤害计算是不正确的，仅用于最优词条模拟）。<br>
+        </p>
+        <button class="zzz-btn btn-large active" onclick="closeModal()">开始计算</button>
+    </div>
+</div>
+
+<div class="container">
+    <header>
+        <h1>ZZZ神秘小算盘</h1>
+        <div class="credits">bY 奥伯勒斯的千早爱音本人 with Dr.Gemini</div>
+        <div class="version">ver1211</div>
+    </header>
+
+    <!-- Module 1: Agent Data -->
+    <div class="module" id="mod-agent">
+        <div class="module-title"><span>01 // 代理人数据</span></div>
+        <div class="grid-3">
+            <!-- Main DPS -->
+            <div class="sub-module" id="agent-main">
+                <h3>主C代理人 (DPS)</h3>
+                <div class="input-group">
+                    <label>预设文件</label>
+                    <div style="display:flex; align-items:center;">
+                        <select id="preset-dps-select" onchange="loadPreset('dps', 'a_main', this.value)">
+                            <option value="">-- 加载中... --</option>
+                        </select>
+                        <div class="rank-selector" id="cinema-a_main">
+                            <!-- JS generates buttons -->
+                        </div>
+                    </div>
+                </div>
+                <!-- Inputs generated by JS -->
+            </div>
+            <!-- Support 1 -->
+            <div class="sub-module" id="agent-sup1">
+                <h3>辅助 1 (SUP)</h3>
+                <div class="input-group">
+                    <label>预设文件</label>
+                    <div style="display:flex; align-items:center;">
+                        <select id="preset-sup1-select" onchange="loadPreset('sup', 'a_sup1', this.value)">
+                            <option value="">-- 加载中... --</option>
+                        </select>
+                        <div class="rank-selector" id="cinema-a_sup1"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Support 2 -->
+            <div class="sub-module" id="agent-sup2">
+                <h3>辅助 2 (SUP)</h3>
+                <div class="input-group">
+                    <label>预设文件</label>
+                    <div style="display:flex; align-items:center;">
+                        <select id="preset-sup2-select" onchange="loadPreset('sup', 'a_sup2', this.value)">
+                            <option value="">-- 加载中... --</option>
+                        </select>
+                        <div class="rank-selector" id="cinema-a_sup2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Module 2: W-Engine Data -->
+    <div class="module" id="mod-weapon">
+        <div class="module-title"><span>02 // 音擎数据</span></div>
+        <div class="grid-3">
+            <!-- Main Weapon -->
+            <div class="sub-module" id="weapon-main">
+                <h3>主C音擎 (wpDPS)</h3>
+                <div class="input-group">
+                    <label>预设文件</label>
+                    <div style="display:flex; align-items:center;">
+                        <select id="preset-wdps-select" onchange="loadPreset('wpDPS', 'w_main', this.value)">
+                            <option value="">-- 加载中... --</option>
+                        </select>
+                        <div class="rank-selector" id="star-w_main"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sup1 Weapon -->
+            <div class="sub-module" id="weapon-sup1">
+                <h3>辅助1音擎 (wpSUP)</h3>
+                <div class="input-group">
+                    <label>预设文件</label>
+                    <div style="display:flex; align-items:center;">
+                        <select id="preset-wsup1-select" onchange="loadPreset('wpSUP', 'w_sup1', this.value)">
+                            <option value="">-- 加载中... --</option>
+                        </select>
+                        <div class="rank-selector" id="star-w_sup1"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sup2 Weapon -->
+            <div class="sub-module" id="weapon-sup2">
+                <h3>辅助2音擎 (wpSUP)</h3>
+                <div class="input-group">
+                    <label>预设文件</label>
+                    <div style="display:flex; align-items:center;">
+                        <select id="preset-wsup2-select" onchange="loadPreset('wpSUP', 'w_sup2', this.value)">
+                            <option value="">-- 加载中... --</option>
+                        </select>
+                        <div class="rank-selector" id="star-w_sup2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Module 3 & 4: Split Layout -->
+    <div class="grid-2-split">
+        <!-- Module 3: Disc Stats -->
+        <div class="module" id="mod-preset-stats">
+            <div class="module-title"><span>03 // 驱动盘主词条</span></div>
+            <div class="sub-module">
+                <div class="input-group">
+                    <label>6号位 (固定)</label>
+                    <input type="text" value="30% 攻击力" disabled>
+                </div>
+                <div class="input-group">
+                    <label>2号位 (固定)</label>
+                    <input type="text" value="316 固定攻击" disabled>
+                </div>
+                <div class="input-group">
+                    <label>4号位 (可选)</label>
+                    <select id="slot4-select" onchange="calculateAll()">
+                        <option value="critRate">24% 暴击率</option>
+                        <option value="critDmg">48% 暴击伤害</option>
+                        <option value="atk">30% 攻击力</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 4: BOSS Data -->
+        <div class="module" id="mod-boss">
+            <div class="module-title"><span>04 // 敌人数据</span></div>
+            <div class="sub-module">
+                <div class="input-group">
+                    <label>基础防御力</label>
+                    <select id="boss-def-base" onchange="calculateAll()">
+                        <option value="953">默认 (953)</option>
+                        <option value="1588">彷徨猎手 (1588)</option>
+                        <option value="476">太初梦魇 (476)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>防御加成 (%)</label>
+                    <input type="number" id="boss-def-bonus" value="0" onchange="calculateAll()">
+                </div>
+                <div class="input-group">
+                    <label>敌人抗性</label>
+                    <div class="switch-container">
+                        <button class="zzz-btn active" onclick="setRes(0, this)">0%</button>
+                        <button class="zzz-btn" onclick="setRes(0.2, this)">20%</button>
+                        <button class="zzz-btn" onclick="setRes(0.4, this)">40%</button>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-top:10px;">
+                    <label>敌人弱点</label>
+                    <div class="switch-container">
+                        <button class="zzz-btn" onclick="setWeakness(true, this)">是</button>
+                        <button class="zzz-btn active" onclick="setWeakness(false, this)">否</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Module 5: Calculation Process -->
+    <div class="module" id="mod-calc">
+        <div class="module-title"><span>05 // 伤害计算核心</span></div>
+        <div class="input-group" style="max-width: 300px;">
+            <label>技能倍率 (%)</label>
+            <input type="number" id="skill-multiplier" value="100" onchange="calculateAll()">
+        </div>
+        <div class="calc-log" id="calc-log">
+            等待计算...
+        </div>
+    </div>
+
+    <!-- Module 6: Optimization -->
+    <div class="module" id="mod-opt">
+        <div class="module-title"><span>06 // 调优与模拟</span></div>
+        
+        <!-- Field Buffs (New) -->
+        <div class="sub-module" style="margin-bottom: 20px; border-color: var(--zzz-neon);">
+            <h3>场地BUFF (全局生效)</h3>
+            <div class="grid-3">
+                <div class="input-group"><label>局内攻击%</label><input type="number" id="field_inCombatAtkPct" value="0" onchange="calculateAll()"></div>
+                <div class="input-group"><label>暴击率%</label><input type="number" id="field_critRate" value="0" onchange="calculateAll()"></div>
+                <div class="input-group"><label>暴击伤害%</label><input type="number" id="field_critDmg" value="0" onchange="calculateAll()"></div>
+                <div class="input-group"><label>增伤%</label><input type="number" id="field_dmgBonus" value="0" onchange="calculateAll()"></div>
+                <div class="input-group"><label>减抗%</label><input type="number" id="field_resShred" value="0" onchange="calculateAll()"></div>
+                <div class="input-group"><label>无视防御%</label><input type="number" id="field_defShred" value="0" onchange="calculateAll()"></div>
+                <div class="input-group"><label>失衡易伤%</label><input type="number" id="field_dazeVuln" value="0" onchange="calculateAll()"></div>
+            </div>
+        </div>
+
+        <div class="opt-controls">
+            <button class="zzz-btn btn-large active" id="mode-manual-btn" onclick="switchMode('manual')">手动模式</button>
+            <button class="zzz-btn btn-large" id="mode-auto-btn" onclick="switchMode('auto')">最优计算</button>
+        </div>
+
+        <!-- Manual Mode UI -->
+        <div id="manual-ui">
+            <div class="grid-3">
+                <div class="sub-module">
+                    <h3>副词条数量 (总和 ≤ 48)</h3>
+                    <div class="input-group">
+                        <label>暴击率 (2.4%)</label>
+                        <input type="number" id="sub-cr-count" value="0" min="0" onchange="manualUpdate()">
+                        <span id="gain-cr" style="color:var(--zzz-neon); font-size:0.8rem;"></span>
+                    </div>
+                    <div class="input-group">
+                        <label>暴击伤害 (4.8%)</label>
+                        <input type="number" id="sub-cd-count" value="0" min="0" onchange="manualUpdate()">
+                        <span id="gain-cd" style="color:var(--zzz-neon); font-size:0.8rem;"></span>
+                    </div>
+                    <div class="input-group">
+                        <label>攻击力 (3%)</label>
+                        <input type="number" id="sub-atk-count" value="0" min="0" onchange="manualUpdate()">
+                        <span id="gain-atk" style="color:var(--zzz-neon); font-size:0.8rem;"></span>
+                    </div>
+                    <div style="text-align:right; color:var(--zzz-alert); font-size:0.8rem;" id="sub-total-warn"></div>
+                </div>
+                <div class="sub-module">
+                    <h3>装备选择</h3>
+                    <div class="input-group">
+                        <label>5号位主词条</label>
+                        <select id="slot5-select" onchange="manualUpdate()">
+                            <option value="atk">30% 攻击力</option>
+                            <option value="dmg">30% 增伤</option>
+                            <option value="pen">24% 穿透率</option>
+                        </select>
+                    </div>
+                    <div style="text-align:right; font-size:0.8rem; color:var(--zzz-neon)" id="gain-slot5"></div>
+                    
+                    <div class="input-group">
+                        <label>2件套效果</label>
+                        <select id="set2-select" onchange="manualUpdate()">
+                            <option value="dmg">10% 增伤</option>
+                            <option value="pen">8% 穿透率</option>
+                            <option value="atk">10% 攻击力</option>
+                            <option value="cd">16% 暴击伤害</option>
+                        </select>
+                    </div>
+                    <div style="text-align:right; font-size:0.8rem; color:var(--zzz-neon)" id="gain-set2"></div>
+                </div>
+                <div class="sub-module">
+                    <h3>最终面板 (手动)</h3>
+                    <div id="manual-panel" class="panel-data"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto Mode UI -->
+        <div id="auto-ui" style="display:none;">
+            <div class="opt-controls">
+                <label style="color:#fff; margin-right:10px;">查看节点：</label>
+                <button class="zzz-btn btn-large" id="btn-30" onclick="updateChartLine(30)">30词</button>
+                <button class="zzz-btn btn-large" id="btn-36" onclick="updateChartLine(36)">36词</button>
+                <button class="zzz-btn btn-large" id="btn-42" onclick="updateChartLine(42)">42词</button>
+            </div>
+            
+            <div class="grid-3">
+                <div class="sub-module" style="grid-column: span 2;">
+                    <div class="chart-wrapper">
+                        <canvas id="optChart"></canvas>
+                    </div>
+                </div>
+                <div class="sub-module">
+                    <h3>最优配装方案</h3>
+                    <div id="opt-config-display" class="opt-config-box">
+                        <div class="opt-config-title">推荐搭配</div>
+                        <div class="opt-config-val" id="opt-config-val">--</div>
+                        <div class="opt-sub-stats" id="opt-sub-stats">--</div>
+                    </div>
+
+                    <h3>最终面板 (最优)</h3>
+                    <div id="opt-panel" class="panel-data">
+                        <!-- Stats here -->
+                    </div>
+                    
+                    <h3 style="margin-top:20px;">理论极限伤害</h3>
+                    <div id="opt-dmg" style="font-size:2rem; color:var(--zzz-neon); text-align:right; text-shadow:0 0 10px var(--zzz-neon);"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURATION: FILE MANIFEST ---
+    const REPO_FILES = {
+        dps: ["叶瞬光.json", "zhu_yuan.json"], 
+        sup: ["琉音.json", "照.json"], 
+        wpDPS: ["云霓孤光.json", "riot_suppressor.json"], 
+        wpSUP: ["昨夜来电.json", "半糖雪兔.json"] 
+    };
+
+    // --- Data Definitions ---
+    const agentFields = [
+        {id: 'baseAtk', label: '基础攻击', def: 0},
+        {id: 'critRate', label: '暴击率%', def: 5},
+        {id: 'critDmg', label: '暴击伤害%', def: 50},
+        {id: 'dmgBonus', label: '增伤%', def: 0},
+        {id: 'penRatio', label: '穿透率%', def: 0},
+        {id: 'penValue', label: '穿透值', def: 0},
+        {id: 'defShred', label: '无视防御(减防)%', def: 0},
+        {id: 'dazeVuln', label: '失衡易伤%', def: 0},
+        {id: 'resShred', label: '减抗%', def: 0},
+        {id: 'inCombatAtkPct', label: '局内攻击%', def: 0},
+        {id: 'inCombatAtkFlat', label: '局内固定攻击', def: 0}
+    ];
+
+    const weaponFields = [
+        {id: 'baseAtk', label: '基础攻击', def: 0},
+        {id: 'critRate', label: '暴击率%', def: 0},
+        {id: 'critDmg', label: '暴击伤害%', def: 0},
+        {id: 'atkPct', label: '攻击力%', def: 0},
+        {id: 'penRatio', label: '穿透率%', def: 0},
+        {id: 'defShred', label: '无视防御%', def: 0},
+        {id: 'resShred', label: '减抗%', def: 0},
+        {id: 'dmgBonus', label: '增伤%', def: 0},
+        {id: 'inCombatAtkPct', label: '局内攻击%', def: 0},
+        {id: 'inCombatAtkFlat', label: '局内固定攻击', def: 0}
+    ];
+
+    // --- Global State ---
+    let globalState = {
+        bossRes: 0,
+        bossWeak: false,
+        mode: 'manual',
+        chart: null,
+        optData: [],
+        rawPresets: {}, // Stores the raw JSON loaded from files
+        configs: {
+            a_main: { cinema: 0 },
+            a_sup1: { cinema: 0 },
+            a_sup2: { cinema: 0 },
+            w_main: { star: 1 },
+            w_sup1: { star: 1 },
+            w_sup2: { star: 1 }
+        }
+    };
+
+    // --- Initialization ---
+    function createInputs(containerId, prefix, fields) {
+        const container = document.getElementById(containerId);
+        fields.forEach(f => {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <label>${f.label}</label>
+                <input type="number" id="${prefix}_${f.id}" value="${f.def}" onchange="calculateAll()">
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function initSelectors() {
+        // Render Cinema Buttons
+        ['a_main', 'a_sup1', 'a_sup2'].forEach(prefix => {
+            const container = document.getElementById(`cinema-${prefix}`);
+            [1, 2, 4, 6].forEach(rank => {
+                const btn = document.createElement('div');
+                btn.className = 'rank-btn';
+                btn.innerText = rank;
+                btn.onclick = () => toggleCinema(prefix, rank);
+                btn.id = `btn-${prefix}-c${rank}`;
+                container.appendChild(btn);
+            });
+        });
+
+        // Render Star Buttons
+        ['w_main', 'w_sup1', 'w_sup2'].forEach(prefix => {
+            const container = document.getElementById(`star-${prefix}`);
+            [1, 2, 3, 4, 5].forEach(rank => {
+                const btn = document.createElement('div');
+                btn.className = 'rank-btn';
+                btn.innerText = '★';
+                if(rank === 1) btn.classList.add('active'); // Default 1 star
+                btn.onclick = () => setStar(prefix, rank);
+                btn.id = `btn-${prefix}-s${rank}`;
+                container.appendChild(btn);
+            });
+        });
+    }
+
+    function initFileDropdowns() {
+        const fill = (type, selectId) => {
+            const sel = document.getElementById(selectId);
+            sel.innerHTML = '<option value="">-- 选择预设 --</option>';
+            if(REPO_FILES[type]) {
+                REPO_FILES[type].forEach(file => {
+                    const opt = document.createElement('option');
+                    opt.value = file;
+                    opt.text = file.replace('.json', '');
+                    sel.appendChild(opt);
+                });
+            }
+        };
+        fill('dps', 'preset-dps-select');
+        fill('sup', 'preset-sup1-select');
+        fill('sup', 'preset-sup2-select');
+        fill('wpDPS', 'preset-wdps-select');
+        fill('wpSUP', 'preset-wsup1-select');
+        fill('wpSUP', 'preset-wsup2-select');
+    }
+
+    window.onload = function() {
+        createInputs('agent-main', 'a_main', agentFields);
+        createInputs('agent-sup1', 'a_sup1', agentFields);
+        createInputs('agent-sup2', 'a_sup2', agentFields);
+
+        createInputs('weapon-main', 'w_main', weaponFields);
+        createInputs('weapon-sup1', 'w_sup1', weaponFields);
+        createInputs('weapon-sup2', 'w_sup2', weaponFields);
+
+        initSelectors();
+        initFileDropdowns();
+        
+        // Show Modal
+        setTimeout(() => {
+            document.getElementById('welcome-modal').classList.add('show');
+        }, 100);
+
+        calculateAll();
+    };
+
+    function closeModal() {
+        document.getElementById('welcome-modal').classList.remove('show');
+    }
+
+    // --- Logic: Cinema & Star Handling ---
+
+    function toggleCinema(prefix, rank) {
+        // Logic: If clicking 4, activate 1, 2, 4. If clicking 4 again (when 4 is max), maybe toggle off?
+        // Prompt says: "When selecting 4, 1/2/4 are active".
+        // Let's implement: Click X -> Set level to X. If X is already current max, set to previous tier? 
+        // Simple approach: Click X sets level to X. To reset to 0, maybe click the active max?
+        
+        let current = globalState.configs[prefix].cinema;
+        let newLevel = rank;
+        
+        if (current === rank) {
+            // Toggle down logic: 6->4, 4->2, 2->1, 1->0
+            if(rank===6) newLevel=4;
+            else if(rank===4) newLevel=2;
+            else if(rank===2) newLevel=1;
+            else newLevel=0;
+        }
+
+        globalState.configs[prefix].cinema = newLevel;
+        updateRankVisuals(prefix, 'cinema');
+        repopulateInputs(prefix, 'agent');
+    }
+
+    function setStar(prefix, rank) {
+        globalState.configs[prefix].star = rank;
+        updateRankVisuals(prefix, 'star');
+        repopulateInputs(prefix, 'weapon');
+    }
+
+    function updateRankVisuals(prefix, type) {
+        if (type === 'cinema') {
+            const level = globalState.configs[prefix].cinema;
+            [1, 2, 4, 6].forEach(r => {
+                const btn = document.getElementById(`btn-${prefix}-c${r}`);
+                btn.classList.toggle('active', r <= level);
+            });
+        } else {
+            const level = globalState.configs[prefix].star;
+            [1, 2, 3, 4, 5].forEach(r => {
+                const btn = document.getElementById(`btn-${prefix}-s${r}`);
+                btn.classList.toggle('active', r <= level);
+            });
+        }
+    }
+
+    // --- Logic: Parsing Complex Values ---
+
+    function parseAgentValue(valStr, cinemaLevel) {
+        // Format: "Base/C1/C2/C4/C6" e.g. "19.4/0/10/0/0"
+        // If just a number, return it
+        if (typeof valStr === 'number') return valStr;
+        if (!valStr.includes('/')) return parseFloat(valStr) || 0;
+
+        const parts = valStr.split('/').map(s => parseFloat(s) || 0);
+        // Map cinema level to index sum
+        // 0 -> parts[0]
+        // 1 -> parts[0] + parts[1]
+        // 2 -> parts[0] + parts[1] + parts[2]
+        // 4 -> parts[0] + parts[1] + parts[2] + parts[3]
+        // 6 -> sum all 5
+        
+        let sum = parts[0]; // Base
+        if (cinemaLevel >= 1 && parts.length > 1) sum += parts[1];
+        if (cinemaLevel >= 2 && parts.length > 2) sum += parts[2];
+        if (cinemaLevel >= 4 && parts.length > 3) sum += parts[3];
+        if (cinemaLevel >= 6 && parts.length > 4) sum += parts[4];
+        
+        return sum;
+    }
+
+    function parseWeaponValue(valStr, starLevel) {
+        // Format: "S1/S2/S3/S4/S5" e.g. "30/33/36/39/42"
+        if (typeof valStr === 'number') return valStr;
+        if (!valStr.includes('/')) return parseFloat(valStr) || 0;
+
+        const parts = valStr.split('/').map(s => parseFloat(s) || 0);
+        // starLevel is 1-5. Index is starLevel-1.
+        const idx = Math.max(0, Math.min(parts.length - 1, starLevel - 1));
+        return parts[idx];
+    }
+
+    // --- File Loading & Input Population ---
+
+    async function loadPreset(folder, prefix, filename) {
+        if(!filename) return;
+        const path = `./${folder}/${filename}`;
+        try {
+            const response = await fetch(path);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            
+            // Store raw data
+            globalState.rawPresets[prefix] = data;
+            
+            // Populate inputs based on current rank config
+            const type = (folder.includes('wp')) ? 'weapon' : 'agent';
+            repopulateInputs(prefix, type);
+            
+        } catch (e) {
+            alert(`无法读取文件: ${path}\n${e.message}`);
+        }
+    }
+
+    function repopulateInputs(prefix, type) {
+        const data = globalState.rawPresets[prefix];
+        if (!data) return;
+
+        const fields = (type === 'weapon') ? weaponFields : agentFields;
+        
+        fields.forEach(f => {
+            const rawVal = data[f.id]; // Could be number or string "x/y/z"
+            if (rawVal !== undefined) {
+                let finalVal = 0;
+                if (type === 'agent') {
+                    finalVal = parseAgentValue(rawVal, globalState.configs[prefix].cinema);
+                } else {
+                    finalVal = parseWeaponValue(rawVal, globalState.configs[prefix].star);
+                }
+                
+                const el = document.getElementById(`${prefix}_${f.id}`);
+                if (el) el.value = finalVal;
+            }
+        });
+        calculateAll();
+    }
+
+    // --- Helper: Safe Float ---
+    function safeFloat(val) {
+        if (val === undefined || val === null || val === '') return 0;
+        const parsed = parseFloat(val);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+
+    function getVal(id) {
+        const el = document.getElementById(id);
+        return el ? safeFloat(el.value) : 0;
+    }
+
+    function getAgentData(prefix) {
+        let data = {};
+        agentFields.forEach(f => data[f.id] = getVal(`${prefix}_${f.id}`));
+        data.atkPct = 0; 
+        return data;
+    }
+
+    function getWeaponData(prefix) {
+        let data = {};
+        weaponFields.forEach(f => data[f.id] = getVal(`${prefix}_${f.id}`));
+        return data;
+    }
+
+    function getFieldBuffs() {
+        return {
+            inCombatAtkPct: getVal('field_inCombatAtkPct'),
+            critRate: getVal('field_critRate'),
+            critDmg: getVal('field_critDmg'),
+            dmgBonus: getVal('field_dmgBonus'),
+            resShred: getVal('field_resShred'),
+            defShred: getVal('field_defShred'),
+            dazeVuln: getVal('field_dazeVuln')
+        };
+    }
+
+    // --- Core Calculation ---
+    function calculateDamage(extraStats = {}) {
+        let warnings = [];
+
+        const aMain = getAgentData('a_main');
+        const wMain = getWeaponData('w_main');
+        const aSup1 = getAgentData('a_sup1');
+        const aSup2 = getAgentData('a_sup2');
+        const wSup1 = getWeaponData('w_sup1');
+        const wSup2 = getWeaponData('w_sup2');
+        const field = getFieldBuffs();
+
+        const sumSup = (key) => safeFloat(aSup1[key]) + safeFloat(aSup2[key]) + safeFloat(wSup1[key]) + safeFloat(wSup2[key]);
+
+        const baseAtk = safeFloat(aMain.baseAtk) + safeFloat(wMain.baseAtk);
+        if (baseAtk === 0) warnings.push("警告: 基础攻击力(白值)为 0");
+
+        const disc6_AtkPct = 30;
+        const disc2_FlatAtk = 316;
+        const slot4Type = document.getElementById('slot4-select').value;
+        let disc4_AtkPct = slot4Type === 'atk' ? 30 : 0;
+        let disc4_CR = slot4Type === 'critRate' ? 24 : 0;
+        let disc4_CD = slot4Type === 'critDmg' ? 48 : 0;
+
+        const extraAtkPct = safeFloat(extraStats.atkPct) + safeFloat(extraStats.slot5_AtkPct) + safeFloat(extraStats.set2_AtkPct);
+        const extraCR = safeFloat(extraStats.critRate);
+        const extraCD = safeFloat(extraStats.critDmg);
+        const extraDmg = safeFloat(extraStats.dmgBonus) + safeFloat(extraStats.slot5_Dmg) + safeFloat(extraStats.set2_Dmg);
+        const extraPenPct = safeFloat(extraStats.penRatio) + safeFloat(extraStats.slot5_Pen) + safeFloat(extraStats.set2_Pen);
+
+        let outCombatAtkPct = 
+            safeFloat(aMain.atkPct) + 
+            safeFloat(wMain.atkPct) + 
+            sumSup('atkPct') + 
+            disc6_AtkPct + disc4_AtkPct + extraAtkPct;
+
+        let outCombatFlatAtk = disc2_FlatAtk + safeFloat(extraStats.flatAtk);
+
+        // Add Field Buffs
+        let inCombatAtkPct = safeFloat(aMain.inCombatAtkPct) + safeFloat(wMain.inCombatAtkPct) + sumSup('inCombatAtkPct') + field.inCombatAtkPct;
+        let inCombatFlatAtk = safeFloat(aMain.inCombatAtkFlat) + safeFloat(wMain.inCombatAtkFlat) + sumSup('inCombatAtkFlat');
+
+        let sheetAtk = baseAtk * (1 + outCombatAtkPct/100) + outCombatFlatAtk;
+        let totalAtk = sheetAtk * (1 + inCombatAtkPct/100) + inCombatFlatAtk;
+
+        let totalCR = safeFloat(aMain.critRate) + safeFloat(wMain.critRate) + sumSup('critRate') + disc4_CR + extraCR + field.critRate;
+        let totalCD = safeFloat(aMain.critDmg) + safeFloat(wMain.critDmg) + sumSup('critDmg') + disc4_CD + extraCD + field.critDmg;
+        totalCR = Math.min(100, totalCR);
+        let critMult = 1 + (totalCR/100) * (1 + totalCD/100);
+
+        let totalDmgBonus = safeFloat(aMain.dmgBonus) + safeFloat(wMain.dmgBonus) + sumSup('dmgBonus') + extraDmg + field.dmgBonus;
+        let dmgMult = 1 + totalDmgBonus/100;
+
+        let enemyRes = globalState.bossWeak ? 0 : globalState.bossRes;
+        let weaknessVal = globalState.bossWeak ? 0.2 : 0;
+        let totalResShred = safeFloat(aMain.resShred) + safeFloat(wMain.resShred) + sumSup('resShred') + field.resShred;
+        let resMult = 1 - enemyRes + weaknessVal + (totalResShred/100);
+
+        let baseDef = safeFloat(document.getElementById('boss-def-base').value);
+        let defBonus = safeFloat(document.getElementById('boss-def-bonus').value);
+        let totalDefShred = safeFloat(aMain.defShred) + safeFloat(wMain.defShred) + sumSup('defShred') + field.defShred;
+        let totalPenPct = safeFloat(aMain.penRatio) + safeFloat(wMain.penRatio) + sumSup('penRatio') + extraPenPct;
+        let totalPenVal = safeFloat(aMain.penValue) + safeFloat(wMain.penValue) + sumSup('penValue');
+
+        let defCalced = baseDef * (1 + defBonus/100 - totalDefShred/100);
+        let defRes = (defCalced * (1 - totalPenPct/100) - totalPenVal);
+        let defMult = 794 / (defRes + 794);
+
+        let totalDazeVuln = safeFloat(aMain.dazeVuln) + sumSup('dazeVuln') + field.dazeVuln;
+        let dazeMult = 1 + totalDazeVuln/100;
+
+        let skillMult = safeFloat(document.getElementById('skill-multiplier').value) / 100;
+        
+        let finalDmg = skillMult * totalAtk * dmgMult * critMult * resMult * defMult * dazeMult;
+
+        return {
+            dmg: finalDmg,
+            warnings: warnings,
+            details: {
+                baseAtk, outCombatAtkPct, outCombatFlatAtk, sheetAtk, inCombatAtkPct, inCombatFlatAtk, totalAtk,
+                totalCR, totalCD, totalDmgBonus, resMult, defMult, dazeMult, defRes,
+                enemyRes, weaknessVal, totalResShred,
+                baseDef, defBonus, totalDefShred, totalPenPct, totalPenVal
+            }
+        };
+    }
+
+    function calculateAll() {
+        if(globalState.mode === 'manual') {
+            manualUpdate();
+        }
+    }
+
+    function renderPanel(containerId, d) {
+        const el = document.getElementById(containerId);
+        el.innerHTML = `
+            <div class="panel-row"><span>总攻击力</span><span>${Math.floor(d.totalAtk)}</span></div>
+            <div class="panel-row"><span>暴击率</span><span>${d.totalCR.toFixed(1)}%</span></div>
+            <div class="panel-row"><span>暴击伤害</span><span>${d.totalCD.toFixed(1)}%</span></div>
+            <div class="panel-row"><span>增伤区</span><span>${d.totalDmgBonus.toFixed(1)}%</span></div>
+            <div class="panel-row"><span>穿透率</span><span>${d.totalPenPct.toFixed(1)}%</span></div>
+            <div class="panel-row"><span>穿透值</span><span>${d.totalPenVal.toFixed(0)}</span></div>
+            <div class="panel-row"><span>无视防御(减防)</span><span>${d.totalDefShred.toFixed(1)}%</span></div>
+            <div class="panel-row"><span>减抗</span><span>${d.totalResShred.toFixed(1)}%</span></div>
+        `;
+    }
+
+    function manualUpdate() {
+        let crCount = safeFloat(document.getElementById('sub-cr-count').value);
+        let cdCount = safeFloat(document.getElementById('sub-cd-count').value);
+        let atkCount = safeFloat(document.getElementById('sub-atk-count').value);
+        
+        let totalSubs = crCount + cdCount + atkCount;
+        const warnEl = document.getElementById('sub-total-warn');
+        if(totalSubs > 48) {
+            warnEl.innerText = `警告: 词条总数 ${totalSubs} 超过 48!`;
+        } else {
+            warnEl.innerText = `当前词条数: ${totalSubs} / 48`;
+        }
+
+        let slot5 = document.getElementById('slot5-select').value;
+        let set2 = document.getElementById('set2-select').value;
+
+        let extraStats = {
+            critRate: crCount * 2.4,
+            critDmg: cdCount * 4.8,
+            atkPct: atkCount * 3.0,
+            slot5_AtkPct: slot5 === 'atk' ? 30 : 0,
+            slot5_Dmg: slot5 === 'dmg' ? 30 : 0,
+            slot5_Pen: slot5 === 'pen' ? 24 : 0,
+            set2_Dmg: set2 === 'dmg' ? 10 : 0,
+            set2_Pen: set2 === 'pen' ? 8 : 0,
+            set2_AtkPct: set2 === 'atk' ? 10 : 0,
+            set2_CD: set2 === 'cd' ? 16 : 0
+        };
+
+        let result = calculateDamage(extraStats);
+
+        // Gains
+        let baseDmg = result.dmg;
+        let safeDiv = (val) => baseDmg > 0 ? val : 0;
+
+        let gainCR = safeDiv((calculateDamage({...extraStats, critRate: extraStats.critRate + 2.4}).dmg - baseDmg) / baseDmg * 100);
+        let gainCD = safeDiv((calculateDamage({...extraStats, critDmg: extraStats.critDmg + 4.8}).dmg - baseDmg) / baseDmg * 100);
+        let gainAtk = safeDiv((calculateDamage({...extraStats, atkPct: extraStats.atkPct + 3.0}).dmg - baseDmg) / baseDmg * 100);
+
+        document.getElementById('gain-cr').innerText = `收益: +${gainCR.toFixed(2)}%`;
+        document.getElementById('gain-cd').innerText = `收益: +${gainCD.toFixed(2)}%`;
+        document.getElementById('gain-atk').innerText = `收益: +${gainAtk.toFixed(2)}%`;
+
+        let noSlot5Stats = {...extraStats, slot5_AtkPct: 0, slot5_Dmg: 0, slot5_Pen: 0};
+        let dmgNoSlot5 = calculateDamage(noSlot5Stats).dmg;
+        let gainSlot5 = dmgNoSlot5 > 0 ? (baseDmg - dmgNoSlot5) / dmgNoSlot5 * 100 : 0;
+        document.getElementById('gain-slot5').innerText = `当前选择收益: +${gainSlot5.toFixed(2)}%`;
+
+        let noSet2Stats = {...extraStats, set2_Dmg: 0, set2_Pen: 0, set2_AtkPct: 0, set2_CD: 0};
+        let dmgNoSet2 = calculateDamage(noSet2Stats).dmg;
+        let gainSet2 = dmgNoSet2 > 0 ? (baseDmg - dmgNoSet2) / dmgNoSet2 * 100 : 0;
+        document.getElementById('gain-set2').innerText = `当前选择收益: +${gainSet2.toFixed(2)}%`;
+
+        displayLog(result);
+        renderPanel('manual-panel', result.details);
+        
+        const manualPanel = document.getElementById('manual-panel');
+        manualPanel.innerHTML += `<div class="panel-row" style="color:var(--zzz-neon); font-weight:bold; margin-top:5px; border-top:1px solid #444; padding-top:5px;"><span>最终伤害</span><span>${Math.floor(result.dmg)}</span></div>`;
+    }
+
+    function displayLog(res) {
+        let d = res.details;
+        let log = `计算公式：
+伤害 = 技能倍率 * ((白值*局外% + 局外固定) * (1+<span class="in-combat-highlight">局内%</span>) + <span class="in-combat-highlight">局内固定</span>) * (1+增伤) * (1+暴击*(1+爆伤)) * (1-抗性+弱点+减抗) * (794 / (((防御*(1+加成-减防))*(1-穿透率)-穿透值)+794)) * (1+失衡)
+
+详细数值：
+1. 攻击力区：
+   局外 = (${d.baseAtk} * (1+${d.outCombatAtkPct.toFixed(1)}%) + ${d.outCombatFlatAtk}) = ${Math.floor(d.sheetAtk)}
+   局内 = ${Math.floor(d.sheetAtk)} * (1+<span class="in-combat-highlight">${d.inCombatAtkPct.toFixed(1)}%</span>) + <span class="in-combat-highlight">${d.inCombatFlatAtk}</span> = ${Math.floor(d.totalAtk)}
+
+2. 暴击区 (期望)：
+   1 + (${d.totalCR.toFixed(1)}% * (1 + ${d.totalCD.toFixed(1)}%)) = ${(1 + (Math.min(d.totalCR,100)/100)*(1+d.totalCD/100)).toFixed(3)}
+
+3. 抗性区：
+   1 - ${d.enemyRes} (抗性) + ${d.weaknessVal} (弱点) + ${d.totalResShred/100} (减抗) = ${d.resMult.toFixed(3)}
+
+4. 防御区：
+   防御值 = (${d.baseDef} * (1+${d.defBonus/100}-${d.totalDefShred/100})) * (1-${d.totalPenPct/100}) - ${d.totalPenVal} = ${d.defRes.toFixed(1)}
+   系数 = 794 / (${d.defRes.toFixed(1)} + 794) = ${d.defMult.toFixed(4)}
+
+5. 最终伤害：
+   ${Math.floor(res.dmg)}`;
+
+        if (res.warnings.length > 0) {
+            log += `\n\n<span class="alert-text">[异常告警]:\n` + res.warnings.join('\n') + `</span>`;
+        }
+        document.getElementById('calc-log').innerHTML = log;
+    }
+
+    // --- Optimization Mode Logic ---
+    function switchMode(mode) {
+        globalState.mode = mode;
+        document.getElementById('mode-manual-btn').classList.toggle('active', mode === 'manual');
+        document.getElementById('mode-auto-btn').classList.toggle('active', mode === 'auto');
+        document.getElementById('manual-ui').style.display = mode === 'manual' ? 'block' : 'none';
+        document.getElementById('auto-ui').style.display = mode === 'auto' ? 'block' : 'none';
+
+        if(mode === 'auto') {
+            runOptimization();
+        }
+    }
+
+    function runOptimization() {
+        const slot5Opts = [
+            {id: 'atk', val: {slot5_AtkPct: 30}, name: '5号位:攻击'},
+            {id: 'dmg', val: {slot5_Dmg: 30}, name: '5号位:增伤'},
+            {id: 'pen', val: {slot5_Pen: 24}, name: '5号位:穿透'}
+        ];
+        const set2Opts = [
+            {id: 'atk', val: {set2_AtkPct: 10}, name: '2件套:攻击'},
+            {id: 'dmg', val: {set2_Dmg: 10}, name: '2件套:增伤'},
+            {id: 'pen', val: {set2_Pen: 8}, name: '2件套:穿透'},
+            {id: 'cd', val: {set2_CD: 16}, name: '2件套:爆伤'}
+        ];
+
+        let bestGlobalDmg = 0;
+        let bestHistory = []; 
+
+        for(let s5 of slot5Opts) {
+            for(let s2 of set2Opts) {
+                let currentStats = {
+                    critRate: 0, critDmg: 0, atkPct: 0,
+                    ...s5.val, ...s2.val
+                };
+                let history = [];
+                let currentDmg = calculateDamage(currentStats).dmg;
+                let counts = { cr: 0, cd: 0, atk: 0 };
+
+                // Step 0
+                history.push({
+                    step: 0, dmg: currentDmg,
+                    stats: {...currentStats}, configName: `${s5.name} + ${s2.name}`,
+                    gains: {cr: 0, cd: 0, atk: 0},
+                    counts: {...counts}
+                });
+
+                for(let step=1; step<=48; step++) {
+                    let dCR = calculateDamage({...currentStats, critRate: currentStats.critRate + 2.4}).dmg;
+                    let dCD = calculateDamage({...currentStats, critDmg: currentStats.critDmg + 4.8}).dmg;
+                    let dAtk = calculateDamage({...currentStats, atkPct: currentStats.atkPct + 3.0}).dmg;
+
+                    let gCR = (dCR - currentDmg) / currentDmg * 100;
+                    let gCD = (dCD - currentDmg) / currentDmg * 100;
+                    let gAtk = (dAtk - currentDmg) / currentDmg * 100;
+
+                    let bestMove = Math.max(dCR, dCD, dAtk);
+                    
+                    if(bestMove === dCR) { currentStats.critRate += 2.4; counts.cr++; }
+                    else if(bestMove === dCD) { currentStats.critDmg += 4.8; counts.cd++; }
+                    else { currentStats.atkPct += 3.0; counts.atk++; }
+
+                    currentDmg = bestMove;
+                    history.push({
+                        step: step,
+                        dmg: currentDmg,
+                        stats: {...currentStats},
+                        configName: `${s5.name} + ${s2.name}`,
+                        gains: { cr: gCR, cd: gCD, atk: gAtk },
+                        counts: {...counts}
+                    });
+                }
+
+                if(currentDmg > bestGlobalDmg) {
+                    bestGlobalDmg = currentDmg;
+                    bestHistory = history;
+                }
+            }
+        }
+
+        globalState.optData = bestHistory;
+        drawChart(bestHistory);
+        updateChartLine(30);
+    }
+
+    // Chart Plugin for Vertical Line
+    const verticalLinePlugin = {
+        id: 'verticalLine',
+        afterDatasetsDraw: (chart, args, options) => {
+            if (chart.config._activeStep === undefined) return;
+            const step = chart.config._activeStep;
+            const ctx = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+            
+            const x = xAxis.getPixelForValue(step);
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, yAxis.top);
+            ctx.lineTo(x, yAxis.bottom);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#ffffff';
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.restore();
+        }
+    };
+
+    function drawChart(history) {
+        const ctx = document.getElementById('optChart').getContext('2d');
+        if(globalState.chart) globalState.chart.destroy();
+
+        const chartData = history.slice(1);
+        const labels = chartData.map(h => h.step);
+        
+        const dataCR = chartData.map(h => h.gains.cr);
+        const dataCD = chartData.map(h => h.gains.cd);
+        const dataAtk = chartData.map(h => h.gains.atk);
+
+        globalState.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: '暴击率收益', data: dataCR, borderColor: '#ff4d4d', borderWidth: 2, pointRadius: 1 },
+                    { label: '暴击伤害收益', data: dataCD, borderColor: '#dfff00', borderWidth: 2, pointRadius: 1 },
+                    { label: '攻击力收益', data: dataAtk, borderColor: '#00ccff', borderWidth: 2, pointRadius: 1 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#fff' } },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.y.toFixed(3)}%`;
+                            },
+                            footer: function(tooltipItems) {
+                                const idx = tooltipItems[0].dataIndex;
+                                const h = chartData[idx];
+                                return `最优分配: CR:${h.counts.cr} CD:${h.counts.cd} Atk:${h.counts.atk}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { color: '#333' }, 
+                        ticks: { color: '#888', stepSize: 3 }, 
+                        title: {display:true, text:'步数', color:'#666'} 
+                    },
+                    y: { 
+                        grid: { color: '#333' }, 
+                        ticks: { color: '#888' }, 
+                        title: {display:true, text:'收益率 (%)', color:'#666'} 
+                    }
+                }
+            },
+            plugins: [verticalLinePlugin]
+        });
+    }
+
+    function updateChartLine(steps) {
+        ['30','36','42'].forEach(n => {
+            document.getElementById(`btn-${n}`).classList.toggle('active', n == steps);
+        });
+
+        if(!globalState.optData.length) return;
+        let data = globalState.optData[steps]; 
+        
+        // Update Config Display
+        document.getElementById('opt-config-val').innerText = data.configName;
+        document.getElementById('opt-sub-stats').innerText = 
+            `最优分配: 暴击率 ${data.counts.cr} | 暴击伤害 ${data.counts.cd} | 攻击力 ${data.counts.atk}`;
+
+        // Update Panel
+        renderPanel('opt-panel', calculateDamage(data.stats).details);
+        document.getElementById('opt-dmg').innerText = Math.floor(data.dmg).toLocaleString();
+
+        // Update Chart Line
+        if (globalState.chart) {
+            globalState.chart.config._activeStep = steps;
+            globalState.chart.draw();
+        }
+    }
+
+</script>
+</body>
+</html>

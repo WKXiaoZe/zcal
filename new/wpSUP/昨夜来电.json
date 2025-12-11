@@ -1,0 +1,12 @@
+{
+    "baseAtk": "0/0/0/0/0",
+    "atkPct": "0/0/0/0/0",
+    "critRate": "0/0/0/0/0",
+    "critDmg": "30/34.5/39/43.5/48",
+    "dmgBonus": "0/0/0/0/0",
+    "penRatio": "0/0/0/0/0",
+    "defShred": "0/0/0/0/0",
+    "resShred": "0/0/0/0/0",
+    "inCombatAtkPct": "0/0/0/0/0",
+    "inCombatAtkFlat": "0/0/0/0/0"
+}
